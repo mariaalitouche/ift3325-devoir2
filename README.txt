@@ -1,4 +1,4 @@
-                  IFT3325 - DEVOIR 2
+IFT3325 - DEVOIR 2
 
 Conception et implantation d'un protocole
 de liaison fiable simplifié

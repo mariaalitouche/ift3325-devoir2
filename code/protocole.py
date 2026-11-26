@@ -135,7 +135,7 @@ def go_back_N(trames):
     numero_attendu = 0 # modulo 8
     premiere_trame_recue = False
 
-    timeout=0.2
+    timeout=0.5
     temps_debut = None
 
     # Statistiques
