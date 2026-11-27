@@ -371,59 +371,68 @@ def comparer_crc():
     assert crc32_original != crc32_modifie       
 
 
-# Programme princial
 if __name__ == "__main__":
 
-    # Avec fichier message.txt
+    # 1. Transmission complète du fichier.
     with open("../message.txt", "r", encoding="ascii") as fichier:
         message = fichier.read()
 
-    # Segmenter le message
     trames = segmenter(message)
-
-    # Numéroter les trames
     trames_numerotees = numeroter_trames(trames)
-
-    # TEST GO-BACK-N  
     trames_preparees = []
 
     for numero, donnees in trames_numerotees:
         bits = convertir_en_bits(donnees)
-        trame = construire_trame(numero, bits)
-        trames_preparees.append(trame)
+        trames_preparees.append(construire_trame(numero, bits))
 
     message_recu = go_back_N(trames_preparees)
 
     print("Go-Back-N terminé !")
     print("Message identique :", message_recu == message)
+    assert message_recu == message
 
-    # AUTRES TESTS DÉSACTIVÉS
+    # 2. Vérification du CRC sur le flux de l'énoncé.
+    print("\n=== CRC avant et après dé-stuffing ===")
 
-    # Test CRC(original) = CRC(destuffed)
+    original = "011111 1011111 011111 1011111 0".replace(" ", "")
+    restaure = stuffing.bit_destuffing(stuffing.bit_stuffing(original))
 
-    # original = "011111101111101111110111110"
-    # destuffed = stuffing.bit_destuffing(stuffing.bit_stuffing(original))
+    crc_original = calculer_crc(original)
+    crc_restaure = calculer_crc(restaure)
 
-    # print("CRC original :", calculer_crc(original))
-    # print("CRC destuffed :", calculer_crc(destuffed))
-    # print("CRC identiques :", calculer_crc(original) == calculer_crc(destuffed))
+    print("CRC original :", crc_original)
+    print("CRC destuffed :", crc_restaure)
+    print("CRC identiques :", crc_original == crc_restaure)
 
-    # print()
+    assert restaure == original
+    assert crc_original == crc_restaure
 
-    # Test de corruption
+    # 3. Comparaison pour justifier le choix du CRC.
+    comparer_crc()
 
-    # original = construire_trame(0, convertir_en_bits("ABC"))
+   # Test de corruption
+    print("\n=== Test de corruption d'une trame ===")
 
-    # position = 12
-    # corrompu = original[:position] + (
-    #     "1" if original[position] == "0" else "0"
-    # ) + original[position + 1:]
+    originale = construire_trame(0, convertir_en_bits("ABC"))
 
-    # print("Trame originale :", original)
-    # print("Trame corrompue :", corrompu)
-    # print("Trame originale valide :", verifier_trame(original, 0))
-    # print("Trame corrompue valide :", verifier_trame(corrompu, 0))
-    # print("Corruption détectée :", not verifier_trame(corrompu, 0))
+    position = 12
+    bit_inverse = "1" if originale[position] == "0" else "0"
 
-    # Comparaison expérimentale pour justifier le choix du CRC.
+    corrompue = (
+        originale[:position]
+        + bit_inverse
+        + originale[position + 1:]
+    )
+
+    originale_valide = verifier_trame(originale, 0)
+    corrompue_valide = verifier_trame(corrompue, 0)
+
+    print("Trame originale valide :", originale_valide)
+    print("Trame corrompue valide :", corrompue_valide)
+    print("Corruption détectée :", not corrompue_valide)
+
+    assert originale_valide
+    assert not corrompue_valide
+
+    #Comparaison expérimentale pour justifier le choix du CRC.
     comparer_crc()
