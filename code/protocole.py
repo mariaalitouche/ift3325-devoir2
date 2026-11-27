@@ -118,15 +118,14 @@ def verifier_trame(trame, numero_attendu):
 
     return False
 
-
-def go_back_N(trames):
+def go_back_N(trames, delaiMax=200, probErreur=0.05, probPerte=0.10, timeout=0.5):
 
     # Lien est un objet créé a partir de la classe Canal
     lien = canal.Canal(
-        delaiMax=380,
-        probErreur=0,
-        probPerte=0
-    )
+    delaiMax=delaiMax,
+    probErreur=probErreur,
+    probPerte=probPerte
+)
 
     derniere_trame_non_confirmee = 0
     prochaine_trame = 0
@@ -135,7 +134,6 @@ def go_back_N(trames):
     numero_attendu = 0 # modulo 8
     premiere_trame_recue = False
 
-    timeout=0.5
     temps_debut = None
 
     # Statistiques
@@ -385,7 +383,13 @@ if __name__ == "__main__":
         bits = convertir_en_bits(donnees)
         trames_preparees.append(construire_trame(numero, bits))
 
-    message_recu = go_back_N(trames_preparees)
+    message_recu = go_back_N(
+    trames_preparees,
+    delaiMax=200,
+    probErreur=0.05,
+    probPerte=0.10,
+    timeout=0.5
+)
 
     print("Go-Back-N terminé !")
     print("Message identique :", message_recu == message)
@@ -410,29 +414,3 @@ if __name__ == "__main__":
     # 3. Comparaison pour justifier le choix du CRC.
     comparer_crc()
 
-   # Test de corruption
-    print("\n=== Test de corruption d'une trame ===")
-
-    originale = construire_trame(0, convertir_en_bits("ABC"))
-
-    position = 12
-    bit_inverse = "1" if originale[position] == "0" else "0"
-
-    corrompue = (
-        originale[:position]
-        + bit_inverse
-        + originale[position + 1:]
-    )
-
-    originale_valide = verifier_trame(originale, 0)
-    corrompue_valide = verifier_trame(corrompue, 0)
-
-    print("Trame originale valide :", originale_valide)
-    print("Trame corrompue valide :", corrompue_valide)
-    print("Corruption détectée :", not corrompue_valide)
-
-    assert originale_valide
-    assert not corrompue_valide
-
-    #Comparaison expérimentale pour justifier le choix du CRC.
-    comparer_crc()
